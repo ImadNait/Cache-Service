@@ -4,6 +4,7 @@ import redis from '../config/redisClient';
 type CacheEntry = {
     key: string;
     value: string | number | Buffer;
+    ttl?:number;
   };
   
   type CacheResponse = {
@@ -38,10 +39,16 @@ export const cachRoute = new Elysia()
 })
 .post("/createCache", async({ request }): Promise<Response>=>{
     
-    const { key, value } = await request.json();
-    const entry: CacheEntry = { key, value };
+    const { key, value, ttl }:CacheEntry = await request.json();
+    const entry: CacheEntry = { key, value, ttl };
+    const ttlValue: string | number = entry.ttl ?? 0;
     try{
-    await redis.set(entry.key, entry.value);
+      if (ttl) {
+        await redis.setex(entry.key, ttlValue, entry.value); 
+      } else {
+        await redis.set(key, value); 
+      }
+
     return new Response(JSON.stringify({ message: "cache entry successfully created" }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -87,5 +94,78 @@ export const cachRoute = new Elysia()
           status: 500,
           headers: { "Content-Type": "application/json" },
       });
+  }
+})
+.put("/cache/:key", async ({ params, request }): Promise<Response> => {
+  const { key } = params;
+  const { value, ttl } = await request.json();
+
+  try {
+    const exists = await redis.exists(key);
+    if (exists) {
+      if (ttl) {
+        await redis.setex(key, ttl, value);
+      } else {
+        await redis.set(key, value);
+      }
+
+      return new Response(
+        JSON.stringify({ message: "Cache entry updated successfully" }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    } else {
+      return new Response(
+        JSON.stringify({ message: "Key not found" }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: "Failed to update cache entry" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+})
+
+.delete("/cache/:key", async ({ params }): Promise<Response> => {
+  const { key } = params;
+
+  try {
+    const exists = await redis.exists(key);
+    if (exists) {
+      await redis.del(key);
+      return new Response(
+        JSON.stringify({ message: "Cache entry deleted successfully" }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    } else {
+      return new Response(
+        JSON.stringify({ message: "Key not found" }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: "Failed to delete cache entry" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 });
