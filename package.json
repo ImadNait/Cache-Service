@@ -1,0 +1,21 @@
+{
+  "name": "caching",
+  "module": "app.ts",
+  "type": "module",
+  "main": "app.ts",
+  "scripts": {
+    "start": "bun run app.ts",
+    "dev": "bun --watch app.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "elysia": "^1.2.10",
+    "ioredis": "^5.4.2",
+    "redis": "^4.7.0"
+  }
+}
