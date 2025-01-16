@@ -3,7 +3,7 @@ import redis from '../config/redisClient';
 
 type CacheEntry = {
     key: string;
-    value: string | number | Buffer;
+    value: string | number | Buffer ;
     ttl?:number;
   };
   
@@ -13,6 +13,10 @@ type CacheEntry = {
     entries?: Record<string, string | null>;
     key?: string;
     value?: string | null;
+    stats?: {
+      hits: number;
+      misses: number;
+  };
   };
 
 
@@ -22,8 +26,10 @@ export const cachRoute = new Elysia()
     const { key } = params;
     const value = await redis.get(key);
     if(value){
+        await redis.incr("cache_hits")
         return new Response(value);
     } else {
+      await redis.incr("cache_misses");
         return new Response(JSON.stringify({ message: "Key not found" }), {
             status: 404,
             headers: { "Content-Type": "application/json" },
