@@ -1,5 +1,5 @@
 import Elysia from 'elysia';
-import { cachRoute } from './routes/cache';
+import { cachRoute } from './service/cache';
 
 const PORT = process.env.PORT || 4000;
 
