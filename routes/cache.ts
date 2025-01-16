@@ -174,4 +174,24 @@ export const cachRoute = new Elysia()
       }
     );
   }
+})
+.get("/cacheStats", async (): Promise<Response> => {
+  try {
+      const hits = await redis.get("cache_hits") || 0;
+      const misses = await redis.get("cache_misses") || 0;
+
+      const stats = { hits, misses };
+      return new Response(JSON.stringify({ stats }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+      });
+  } catch (err) {
+      return new Response(
+          JSON.stringify({ error: "Failed to fetch cache stats" }),
+          {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+          }
+      );
+  }
 });

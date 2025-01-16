@@ -1,4 +1,16 @@
-# caching
+# Cache Service
+A service that temporarily stores data in memory for fast access
+### Features
+
+* **Store & Retrieve:** Save data with a key and get it back quickly
+* **TTL (Time To Live):** Data automatically expires after set time
+* **Statistics:** Track cache hits/misses
+
+
+
+
+
+
 
 To install dependencies:
 
